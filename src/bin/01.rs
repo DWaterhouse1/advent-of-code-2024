@@ -3,13 +3,11 @@ use std::{collections::HashMap, str};
 advent_of_code::solution!(1);
 
 fn parse_and_unzip(input: &str) -> Option<(Vec<i64>, Vec<i64>)> {
-    const ROW_DELIMITER: &str = "\n";
     const PAIR_DELIMITER: &str = "   ";
 
     Some(
         input
-            .split(ROW_DELIMITER)
-            .take_while(|x| !x.is_empty())
+            .lines()
             .map(|x| {
                 let pair = x.split_once(PAIR_DELIMITER)?;
                 Some((pair.0.parse::<i64>().ok()?, pair.1.parse::<i64>().ok()?))
