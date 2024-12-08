@@ -2,7 +2,7 @@ use std::cmp;
 
 advent_of_code::solution!(3);
 
-pub fn part_one(input: &str) -> Option<u32> {
+fn calculate_mults(input: &str) -> Option<u32> {
     const MUL_OPENER: &str = "mul(";
     const MUL_CLOSER: &str = ")";
     const MUL_DELIMITER: &str = ",";
@@ -39,8 +39,50 @@ pub fn part_one(input: &str) -> Option<u32> {
     Some(multiplies.into_iter().sum::<u32>())
 }
 
-pub fn part_two(_input: &str) -> Option<u32> {
-    None
+fn find_disablement_regions(input: &str) -> Vec<(usize, usize)> {
+    const DO: &str = "do()";
+    const DONT: &str = "don't()";
+
+    let mut disablement_regions = Vec::<(usize, usize)>::new();
+    let mut current_index: usize = 0;
+
+    while let Some(dont_pos) = input[current_index..].find(DONT) {
+        let post_dont = current_index + dont_pos + DONT.len();
+
+        if let Some(do_pos) = input[post_dont..].find(DO) {
+            let do_idx = post_dont + do_pos;
+            disablement_regions.push((post_dont, do_idx));
+            current_index = do_idx + DO.len();
+        } else {
+            disablement_regions.push((post_dont, input.len()));
+            break;
+        }
+    }
+
+    disablement_regions
+}
+
+fn remove_disabled_regions(input: &str, regions: &[(usize, usize)]) -> String {
+    let mut result = String::with_capacity(input.len());
+    let mut last_end = 0;
+
+    for &(start, end) in regions {
+        result.push_str(&input[last_end..start]);
+        last_end = end;
+    }
+
+    result.push_str(&input[last_end..]);
+    result
+}
+
+pub fn part_one(input: &str) -> Option<u32> {
+    calculate_mults(input)
+}
+
+pub fn part_two(input: &str) -> Option<u32> {
+    let disablement_regions = find_disablement_regions(input);
+    let processed_input = remove_disabled_regions(input, &disablement_regions);
+    calculate_mults(processed_input.as_str())
 }
 
 #[cfg(test)]
@@ -56,6 +98,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(48));
     }
 }
