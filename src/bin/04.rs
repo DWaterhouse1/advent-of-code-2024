@@ -96,8 +96,68 @@ pub fn part_one(input: &str) -> Option<u32> {
     Some(count)
 }
 
+fn is_m_or_s(byte: u8) -> bool {
+    byte == b'M' || byte == b'S'
+}
+
+fn test_direction_pair(
+    first: Direction,
+    second: Direction,
+    idx: usize,
+    dims: GridDimensions,
+    bytes: &[u8],
+) -> bool {
+    let Some(first_value) = traverse(idx, dims, first)
+        .map(|x| bytes[x])
+        .filter(|byte| is_m_or_s(*byte))
+    else {
+        return false;
+    };
+
+    let Some(second_value) = traverse(idx, dims, second)
+        .map(|x| bytes[x])
+        .filter(|byte| is_m_or_s(*byte))
+    else {
+        return false;
+    };
+
+    first_value != second_value
+}
+
 pub fn part_two(input: &str) -> Option<u32> {
-    None
+    let height = input.lines().count();
+    let search_string: String = input
+        .chars()
+        .filter(|c| !c.is_whitespace() && c.is_ascii())
+        .collect();
+    let width = search_string.len() / height;
+    let dims = GridDimensions { width, height };
+    let search_bytes = search_string.as_bytes();
+
+    let mut count = 0;
+    for idx in 0..search_bytes.len() {
+        if search_bytes[idx] != b'A' {
+            continue;
+        }
+
+        if test_direction_pair(
+            Direction::UpRight,
+            Direction::DownLeft,
+            idx,
+            dims,
+            search_bytes,
+        ) && test_direction_pair(
+            Direction::UpLeft,
+            Direction::DownRight,
+            idx,
+            dims,
+            search_bytes,
+        ) {
+            count += 1;
+        }
+    }
+
+    Some(count)
 }
 
 #[cfg(test)]
@@ -113,6 +173,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(9));
     }
 }
