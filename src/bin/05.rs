@@ -1,3 +1,5 @@
+use itertools::Itertools;
+use std::cmp;
 use std::collections::{HashMap, HashSet};
 
 advent_of_code::solution!(5);
@@ -94,8 +96,30 @@ pub fn part_one(input: &str) -> Option<u32> {
     Some(total)
 }
 
-pub fn part_two(_input: &str) -> Option<u32> {
-    None
+pub fn part_two(input: &str) -> Option<u32> {
+    let (rules_list, page_updates) = parse_input(input)?;
+
+    let rules = compute_precedent_rules(&rules_list);
+
+    let total = page_updates
+        .into_iter()
+        .filter(|list| !satisfies_ordering_rules(list, &rules))
+        .update(|list| {
+            list.sort_by(|a, b| {
+                if let Some(precedents) = rules.get(b) {
+                    if precedents.contains(a) {
+                        return cmp::Ordering::Less;
+                    }
+                }
+                cmp::Ordering::Greater
+            });
+        })
+        .fold(0, |acc, good_updates| {
+            let middle_index = good_updates.len() / 2;
+            acc + good_updates[middle_index]
+        });
+
+    Some(total)
 }
 
 #[cfg(test)]
@@ -111,6 +135,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(123));
     }
 }
