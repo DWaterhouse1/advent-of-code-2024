@@ -18,6 +18,23 @@ pub enum Direction {
     UpLeft,
 }
 
+impl Direction {
+    pub fn turn_right(&mut self) {
+        *self = match self {
+            Direction::Up => Direction::Right,
+            Direction::Right => Direction::Down,
+            Direction::Down => Direction::Left,
+            Direction::Left => Direction::Up,
+
+            // not actually necessary for us, but better than a panic
+            Direction::UpRight => Direction::DownRight,
+            Direction::DownRight => Direction::DownLeft,
+            Direction::DownLeft => Direction::UpLeft,
+            Direction::UpLeft => Direction::UpRight,
+        }
+    }
+}
+
 pub fn traverse(idx: usize, dims: GridDimensions, direction: Direction) -> Option<usize> {
     let end_idx = dims.width * dims.height;
     let row = idx / dims.width;
